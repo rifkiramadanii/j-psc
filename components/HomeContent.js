@@ -15,25 +15,41 @@ export default function HomeContent() {
   
   // State untuk mengontrol slide aktif
   const [currentSlide, setCurrentSlide] = useState(0);
+  
+  // BARU: State untuk mendeteksi kursor hover (Pause on Hover)
+  const [isPaused, setIsPaused] = useState(false);
   const totalSlides = 2;
 
-  // Auto-play slider (Ganti slide setiap 5 detik)
+  // Auto-play slider (Berhenti jika isPaused = true)
   useEffect(() => {
+    // BARU: Jika sedang di-hover (paused), jangan jalankan interval
+    if (isPaused) return;
+
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
     }, 5000);
+    
     return () => clearInterval(timer);
-  }, []);
+  }, [isPaused]); // BARU: Tambahkan isPaused sebagai dependency
 
   return (
     <>
       {/* TOP ANNOUNCEMENT BAR */}
       <div className="announcement-bar">
-        <div className="container">
-          <span>🔥 <strong>Call for Papers 2026:</strong> Segera terbitkan artikel Anda di Jurnal JSP & JEPS.</span>
-          <Link href="/journals" className="announcement-link">
-            Kirim Sekarang &rarr;
-          </Link>
+        <div className="container" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
+          <div>
+            <span>🔥 <strong>Call for Papers:</strong> Segera terbitkan artikel Anda di Jurnal JSP & JEPS. </span>
+            <Link href="/journals" className="announcement-link">
+              Kirim Sekarang &rarr;
+            </Link>
+          </div>
+          <span style={{ opacity: 0.4 }}>|</span>
+          <div>
+            <span>💡 <strong>Call for Reviewer:</strong> Mari bergabung menjadi mitra bebestari kami. </span>
+            <Link href="/contact" className="announcement-link">
+              Daftar Reviewer &rarr;
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -45,22 +61,27 @@ export default function HomeContent() {
             <span>{t.mastheadTag2}</span>
           </div>
 
-          <div className="hero-carousel-viewport">
+          {/* BARU: Tambahkan event onMouseEnter dan onMouseLeave di pembungkus Carousel */}
+          <div 
+            className="hero-carousel-viewport"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
             <div 
               className="hero-carousel-track" 
               style={{ transform: `translateX(-${currentSlide * 100}%)` }}
             >
               
               {/* =========================================
-                  SLIDE 1: CALL FOR PAPERS
+                  SLIDE 1: CALL FOR PAPERS & REVIEWERS
                   ========================================= */}
               <div className="hero-slide">
                 <div className="masthead-grid">
                   <div>
                     <p className="eyebrow" style={{ color: '#e74c3c' }}>Pengumuman Penting</p>
-                    <h1>Call for Papers 2026</h1>
+                    <h1>Call for Papers & Reviewers</h1>
                     <p className="lede">
-                      Kami mengundang para peneliti, akademisi, dan praktisi untuk mempublikasikan artikel ilmiah berkualitas pada jurnal <strong>JSP</strong> dan <strong>JEPS</strong>. Dapatkan visibilitas global dengan platform *Open Access*.
+                      Kami mengundang para peneliti dan akademisi untuk mempublikasikan artikel ilmiah berkualitas pada jurnal <strong>JSP</strong> dan <strong>JEPS</strong>. Selain itu, kami juga membuka kesempatan bagi Anda untuk bergabung sebagai <strong>Reviewer (Mitra Bebestari)</strong> di jurnal kami.
                     </p>
                     <div className="masthead-actions">
                       <Link href="/journals#jsp" className="btn btn-primary">
@@ -69,10 +90,12 @@ export default function HomeContent() {
                       <Link href="/journals#jeps" className="btn btn-secondary">
                         Submit ke JEPS
                       </Link>
+                      <Link href="/contact" className="btn btn-secondary" style={{ borderStyle: 'dashed' }}>
+                        Daftar Reviewer
+                      </Link>
                     </div>
                   </div>
 
-                  {/* UBAH: Dari <Reveal> menjadi <div> biasa agar tidak tersembunyi (opacity 0) */}
                   <div className="toc-card cfp-schedule-card">
                     <div className="toc-card-head" style={{ backgroundColor: 'var(--navy)', color: '#fff' }}>
                       <span>Timeline</span>
@@ -81,15 +104,15 @@ export default function HomeContent() {
                     <ul className="toc-list" style={{ padding: '1.5rem' }}>
                       <li style={{ borderBottom: '1px solid var(--border)', paddingBottom: '10px', marginBottom: '10px' }}>
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-soft)', display: 'block' }}>Batas Pengiriman</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--navy-ink)' }}>20 Oktober 2026</strong>
+                        <strong style={{ fontSize: '1.1rem', color: 'var(--navy-ink)' }}>Oktober - November 2026</strong>
                       </li>
                       <li style={{ borderBottom: '1px solid var(--border)', paddingBottom: '10px', marginBottom: '10px' }}>
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-soft)', display: 'block' }}>Proses Review</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--navy-ink)' }}>Oktober 2026</strong>
+                        <strong style={{ fontSize: '1.1rem', color: 'var(--navy-ink)' }}>Oktober - November 2026</strong>
                       </li>
                       <li>
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-soft)', display: 'block' }}>Publikasi Jurnal</span>
-                        <strong style={{ fontSize: '1.1rem', color: 'var(--navy-ink)' }}>30 Oktober 2026</strong>
+                        <strong style={{ fontSize: '1.1rem', color: 'var(--navy-ink)' }}>30 Desember 2026</strong>
                       </li>
                     </ul>
                   </div>
@@ -115,7 +138,6 @@ export default function HomeContent() {
                     </div>
                   </div>
 
-                  {/* UBAH: Dari <Reveal> menjadi <div> biasa */}
                   <div className="toc-card">
                     <div className="toc-card-head">
                       <span>{t.tocTag}</span>
@@ -138,6 +160,7 @@ export default function HomeContent() {
             </div>
           </div>
 
+          {/* Indikator Slider */}
           <div className="carousel-dots">
             <button 
               onClick={() => setCurrentSlide(0)} 
@@ -153,7 +176,7 @@ export default function HomeContent() {
         </div>
       </section>
 
-      {/* Sisa konten sama persis dengan sebelumnya */}
+      {/* SISA KONTEN TETAP SAMA SEPERTI SEBELUMNYA */}
       <section className="section">
         <div className="container two-col">
           <Reveal>
