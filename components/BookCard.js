@@ -1,24 +1,25 @@
 import Link from 'next/link';
 
 export default function BookCard({ book, language, categoryLabel, byAuthorLabel, viewDetailsLabel }) {
-  // Menggunakan optional chaining (?.) agar aplikasi tidak error 
-  // jika data dari database ada yang terlewat/kosong
-  const title = book.title?.[language] || '';
-  const description = book.description?.[language] || '';
+  // Menyesuaikan dengan kolom database: title_id / title_en dan desc_id / desc_en
+  const title = language === 'en' ? book.title_en : book.title_id;
+  const description = language === 'en' ? book.desc_en : book.desc_id;
 
   return (
     <article className="book-card">
       <div 
         className="book-cover" 
         style={{ 
-          background: book.coverColor || '#e5e7eb',
+          background: book.cover_color || '#e5e7eb',
           position: 'relative', 
-          overflow: 'hidden' 
+          overflow: 'hidden',
+          aspectRatio: '2/3'
         }}
       >
-        {book.coverImageUrl ? (
+        {/* Menggunakan book.cover sesuai nama kolom di database */}
+        {book.cover ? (
           <img 
-            src={book.coverImageUrl} 
+            src={book.cover} 
             alt={title} 
             style={{
               width: '100%',
@@ -39,10 +40,10 @@ export default function BookCard({ book, language, categoryLabel, byAuthorLabel,
       <div className="book-card-body">
         <h3>{title}</h3>
         <p className="book-card-author">
-          {byAuthorLabel} {book.author} &middot; {book.year}
+          {byAuthorLabel} {book.author} &middot; {book.publish_year}
         </p>
         <p className="book-card-desc">{description}</p>
-        <p className="book-card-isbn">ISBN {book.isbn}</p>
+        {book.isbn && <p className="book-card-isbn">ISBN {book.isbn}</p>}
         <Link href={`/publications/${book.slug}`} className="btn btn-secondary btn-sm">
           {viewDetailsLabel}
         </Link>
