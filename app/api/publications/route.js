@@ -5,12 +5,17 @@ import fs from 'fs';
 import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 
-function checkAuth() {
-  const authCookie = cookies().get('admin_session');
-  return authCookie && authCookie.value === 'authenticated';
+// PERBAIKAN: Jadikan async dan gunakan await cookies()
+async function checkAuth() {
+  try {
+    const cookieStore = await cookies();
+    const authCookie = cookieStore.get('admin_session');
+    return authCookie && authCookie.value === 'authenticated';
+  } catch (error) {
+    return false;
+  }
 }
 
-// Helper untuk proses upload file gambar yang aman
 async function saveCoverImage(coverFile) {
   if (!coverFile || coverFile.size === 0 || coverFile.name === 'undefined') {
     return null;
@@ -21,10 +26,8 @@ async function saveCoverImage(coverFile) {
     const cleanFileName = coverFile.name.replace(/[^a-zA-Z0-9.]/g, '');
     const fileName = `${Date.now()}-${cleanFileName}`;
     
-    // Tentukan path absolut ke folder public/uploads
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     
-    // Buat folder secara rekursif jika belum ada
     if (!fs.existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true });
     }
@@ -39,10 +42,21 @@ async function saveCoverImage(coverFile) {
   }
 }
 
-// POST: Tambah Buku
+export async function GET() {
+  try {
+    const [rows] = await pool.query('SELECT * FROM books ORDER BY id DESC');
+    return NextResponse.json({ success: true, data: rows });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
 export async function POST(request) {
   try {
-    if (!checkAuth()) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    // PERBAIKAN: Gunakan await checkAuth()
+    if (!(await checkAuth())) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
 
     const formData = await request.formData();
     
@@ -78,10 +92,12 @@ export async function POST(request) {
   }
 }
 
-// PUT: Edit Buku
 export async function PUT(request) {
   try {
-    if (!checkAuth()) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    // PERBAIKAN: Gunakan await checkAuth()
+    if (!(await checkAuth())) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
 
     const formData = await request.formData();
     
@@ -103,7 +119,6 @@ export async function PUT(request) {
     let values = [];
 
     if (coverUrl) {
-      // Jika user mengupload gambar cover baru, update juga cover_image_url
       query = `
         UPDATE books 
         SET title_id = ?, title_en = ?, author = ?, publish_year = ?, isbn = ?, category = ?, cover_color = ?, desc_id = ?, desc_en = ?, cover_image_url = ?
@@ -111,7 +126,6 @@ export async function PUT(request) {
       `;
       values = [titleId, titleEn, author, Number(year), isbn, category, coverColor, descriptionId, descriptionEn, coverUrl, slug];
     } else {
-      // Jika tidak mengupload gambar baru, biarkan cover_image_url yang lama
       query = `
         UPDATE books 
         SET title_id = ?, title_en = ?, author = ?, publish_year = ?, isbn = ?, category = ?, cover_color = ?, desc_id = ?, desc_en = ?
@@ -125,6 +139,25 @@ export async function PUT(request) {
 
   } catch (error) {
     console.error('API PUT Error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    // PERBAIKAN: Gunakan await checkAuth()
+    if (!(await checkAuth())) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const slug = searchParams.get('slug');
+
+    if (!slug) return NextResponse.json({ success: false, error: 'Slug tidak ditemukan' }, { status: 400 });
+
+    await pool.query('DELETE FROM books WHERE slug = ?', [slug]);
+    return NextResponse.json({ success: true, message: 'Buku dihapus!' });
+  } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

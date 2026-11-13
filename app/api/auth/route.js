@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 // GET: Cek status login
 export async function GET() {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies(); // Gunakan await di sini juga
     const authCookie = cookieStore.get('admin_session');
     
     if (authCookie && authCookie.value === 'authenticated') {
