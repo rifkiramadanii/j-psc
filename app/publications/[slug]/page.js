@@ -12,8 +12,10 @@ async function getBook(slug) {
   }
 }
 
+// 1. generateMetadata dengan await params
 export async function generateMetadata({ params }) {
-  const book = await getBook(params.slug);
+  const resolvedParams = await params; // Wajib await di Next.js versi terbaru
+  const book = await getBook(resolvedParams.slug);
   
   if (!book) {
     return { title: 'Buku Tidak Ditemukan | J-PSC' };
@@ -25,13 +27,15 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: book.title_en,
       description: book.desc_en,
-      images: book.cover_url ? [book.cover_url] : [],
+      images: book.cover ? [book.cover] : [],
     }
   };
 }
 
+// 2. BookDetailPage dengan await params
 export default async function BookDetailPage({ params }) {
-  const book = await getBook(params.slug);
+  const resolvedParams = await params; // Wajib await di Next.js versi terbaru
+  const book = await getBook(resolvedParams.slug);
 
   if (!book) {
     notFound(); 
