@@ -135,10 +135,13 @@ export default function SecretAdminDashboard() {
         setIsModalOpen(false);
         fetchBooks();
       } else {
-        alert('Gagal menyimpan: ' + json.error);
+        // Tampilkan pesan error spesifik dari backend alih-alih general alert
+        alert('Gagal menyimpan: ' + (json.error || 'Kesalahan tidak diketahui'));
       }
     } catch (error) {
-      alert('Terjadi kesalahan jaringan.');
+      // Menangkap error jaringan yang sebenarnya (misal: server mati atau koneksi terputus)
+      console.error('Frontend Submit Error:', error);
+      alert('Terjadi kesalahan jaringan atau server tidak merespons: ' + error.message);
     } finally {
       setIsLoading(false);
     }
