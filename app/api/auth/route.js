@@ -22,7 +22,6 @@ export async function POST(request) {
     const body = await request.json();
     const { password } = body;
     
-    // Pastikan ADMIN_PASSWORD terbaca dari environment variables
     const adminPassword = process.env.ADMIN_PASSWORD;
 
     if (!adminPassword) {
@@ -33,10 +32,8 @@ export async function POST(request) {
     }
 
     if (password === adminPassword) {
-      // Mengatur cookie sesi admin
-      cookies().set({
-        name: 'admin_session',
-        value: 'authenticated',
+      // PERBAIKAN DI SINI: Gunakan argumen terpisah untuk cookies().set()
+      cookies().set('admin_session', 'authenticated', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
