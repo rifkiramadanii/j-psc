@@ -27,8 +27,8 @@ export async function POST(request) {
     const isbn = formData.get('isbn');
     const category = formData.get('category');
     const coverColor = formData.get('coverColor');
-    const descEn = formData.get('descEn');
-    const descId = formData.get('descId');
+    const descriptionId = formData.get('descriptionId'); 
+    const descriptionEn = formData.get('descriptionEn');
     
     let coverUrl = null;
     const coverFile = formData.get('coverImage');
@@ -61,8 +61,18 @@ export async function POST(request) {
     `;
     
     const values = [
-      slug, titleEn, titleId, author, Number(year), isbn, category, coverColor, descEn, descId, coverUrl
-    ];
+        slug, 
+        titleId, 
+        titleEn, 
+        author, 
+        Number(year), 
+        isbn, 
+        category, 
+        coverColor, 
+        descriptionId, // <--- Ini akan masuk ke desc_id
+        descriptionEn, // <--- Ini akan masuk ke desc_en
+        coverUrl
+        ];
 
     await pool.query(query, values);
 
