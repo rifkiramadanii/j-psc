@@ -32,16 +32,24 @@ export async function POST(request) {
     }
 
     if (password === adminPassword) {
-      // PERBAIKAN DI SINI: Gunakan argumen terpisah untuk cookies().set()
-      cookies().set('admin_session', 'authenticated', {
+      // Membuat response sukses
+      const response = NextResponse.json({ success: true });
+
+      // Mengatur cookie menggunakan header Set-Cookie standar HTTP (100% kompatibel di semua versi Next.js)
+      const isProduction = process.env.NODE_ENV === 'production';
+      const maxAge = 60 * 60 * 24; // 24 jam
+
+      response.cookies.set({
+        name: 'admin_session',
+        value: 'authenticated',
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: isProduction,
         sameSite: 'strict',
         path: '/',
-        maxAge: 60 * 60 * 24 // 24 jam
+        maxAge: maxAge,
       });
 
-      return NextResponse.json({ success: true });
+      return response;
     }
     
     return NextResponse.json({ success: false, error: 'Password salah!' }, { status: 401 });
@@ -54,8 +62,18 @@ export async function POST(request) {
 // DELETE: Proses Logout
 export async function DELETE() {
   try {
-    cookies().delete('admin_session');
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    
+    // Menghapus cookie dengan mengeset maxAge ke 0
+    response.cookies.set({
+      name: 'admin_session',
+      value: '',
+      httpOnly: true,
+      path: '/',
+      maxAge: 0,
+    });
+
+    return response;
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
