@@ -5,7 +5,6 @@ import fs from 'fs';
 import pool from '@/lib/db';
 import { cookies } from 'next/headers';
 
-// PERBAIKAN: Jadikan async dan gunakan await cookies()
 async function checkAuth() {
   try {
     const cookieStore = await cookies();
@@ -44,7 +43,7 @@ async function saveCoverImage(coverFile) {
 
 export async function GET() {
   try {
-    const [rows] = await pool.query('SELECT * FROM books ORDER BY id DESC');
+    const [rows] = await pool.query('SELECT * FROM publications ORDER BY id DESC');
     return NextResponse.json({ success: true, data: rows });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -53,7 +52,6 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    // PERBAIKAN: Gunakan await checkAuth()
     if (!(await checkAuth())) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
@@ -75,7 +73,7 @@ export async function POST(request) {
     const coverUrl = await saveCoverImage(coverFile);
 
     const query = `
-      INSERT INTO books 
+      INSERT INTO publications 
       (slug, title_id, title_en, author, publish_year, isbn, category, cover_color, desc_id, desc_en, cover_image_url) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
@@ -94,7 +92,6 @@ export async function POST(request) {
 
 export async function PUT(request) {
   try {
-    // PERBAIKAN: Gunakan await checkAuth()
     if (!(await checkAuth())) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
@@ -120,14 +117,14 @@ export async function PUT(request) {
 
     if (coverUrl) {
       query = `
-        UPDATE books 
+        UPDATE publications 
         SET title_id = ?, title_en = ?, author = ?, publish_year = ?, isbn = ?, category = ?, cover_color = ?, desc_id = ?, desc_en = ?, cover_image_url = ?
         WHERE slug = ?
       `;
       values = [titleId, titleEn, author, Number(year), isbn, category, coverColor, descriptionId, descriptionEn, coverUrl, slug];
     } else {
       query = `
-        UPDATE books 
+        UPDATE publications 
         SET title_id = ?, title_en = ?, author = ?, publish_year = ?, isbn = ?, category = ?, cover_color = ?, desc_id = ?, desc_en = ?
         WHERE slug = ?
       `;
@@ -145,7 +142,6 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
   try {
-    // PERBAIKAN: Gunakan await checkAuth()
     if (!(await checkAuth())) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
@@ -155,7 +151,7 @@ export async function DELETE(request) {
 
     if (!slug) return NextResponse.json({ success: false, error: 'Slug tidak ditemukan' }, { status: 400 });
 
-    await pool.query('DELETE FROM books WHERE slug = ?', [slug]);
+    await pool.query('DELETE FROM publications WHERE slug = ?', [slug]);
     return NextResponse.json({ success: true, message: 'Buku dihapus!' });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
