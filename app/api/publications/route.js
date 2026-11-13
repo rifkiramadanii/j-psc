@@ -74,7 +74,7 @@ export async function POST(request) {
 
     const query = `
       INSERT INTO publications 
-      (slug, title_id, title_en, author, publish_year, isbn, category, cover_color, desc_id, desc_en, cover_image_url) 
+      (slug, title_id, title_en, author, publish_year, isbn, category, cover_color, desc_id, desc_en, cover_url) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const values = [
@@ -118,7 +118,7 @@ export async function PUT(request) {
     if (coverUrl) {
       query = `
         UPDATE publications 
-        SET title_id = ?, title_en = ?, author = ?, publish_year = ?, isbn = ?, category = ?, cover_color = ?, desc_id = ?, desc_en = ?, cover_image_url = ?
+        SET title_id = ?, title_en = ?, author = ?, publish_year = ?, isbn = ?, category = ?, cover_color = ?, desc_id = ?, desc_en = ?, cover_url = ?
         WHERE slug = ?
       `;
       values = [titleId, titleEn, author, Number(year), isbn, category, coverColor, descriptionId, descriptionEn, coverUrl, slug];

@@ -25,7 +25,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: book.title_en,
       description: book.desc_en,
-      images: book.cover_image_url ? [book.cover_image_url] : [],
+      images: book.cover_url ? [book.cover_url] : [],
     }
   };
 }

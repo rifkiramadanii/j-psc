@@ -227,8 +227,8 @@ export default function SecretAdminDashboard() {
               {books.map((book) => (
                 <tr key={book.slug}>
                   <td>
-                    {book.cover_image_url ? (
-                      <img src={book.cover_image_url} alt="Cover" className="cover-image" />
+                    {book.cover_url ? (
+                      <img src={book.cover_url} alt="Cover" className="cover-image" />
                     ) : (
                       <div className="no-image">No Image</div>
                     )}
