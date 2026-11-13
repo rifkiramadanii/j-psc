@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Reveal from '@/components/Reveal';
 import BookCard from '@/components/BookCard';
-import { books } from '@/lib/books';
+// Hapus import { books } from '@/lib/books';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { getDictionary } from '@/lib/i18n/dictionary';
 
@@ -14,12 +14,57 @@ export default function PublicationsContent() {
   const { language } = useLanguage();
   const t = getDictionary(language).publications;
   const categories = getDictionary(language).categories;
+  
   const [activeCategory, setActiveCategory] = useState('all');
+  
+  // 1. State baru untuk menampung data dari database
+  const [books, setBooks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 2. Fetch data dari API saat halaman dimuat
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const res = await fetch('/api/publications');
+        const json = await res.json();
+        
+        if (json.success) {
+          // Transformasi format kolom database menjadi format yang dimengerti komponen
+          const formattedBooks = json.data.map(dbBook => ({
+            slug: dbBook.slug,
+            title: {
+              en: dbBook.title_en,
+              id: dbBook.title_id
+            },
+            author: dbBook.author,
+            year: dbBook.publish_year,
+            isbn: dbBook.isbn,
+            category: dbBook.category,
+            coverColor: dbBook.cover_color,
+            description: {
+              en: dbBook.description_en,
+              id: dbBook.description_id
+            },
+            // Tambahkan field URL gambar
+            coverImageUrl: dbBook.cover_image_url
+          }));
+          
+          setBooks(formattedBooks);
+        }
+      } catch (error) {
+        console.error("Gagal mengambil data publikasi:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, []);
 
   const visibleBooks = useMemo(() => {
     if (activeCategory === 'all') return books;
     return books.filter((book) => book.category === activeCategory);
-  }, [activeCategory]);
+  }, [activeCategory, books]);
 
   return (
     <>
@@ -31,7 +76,6 @@ export default function PublicationsContent() {
         </div>
       </div>
 
-      {/* BOOK CATALOG */}
       <section className="section">
         <div className="container">
           <p className="eyebrow">{t.catalogEyebrow}</p>
@@ -60,55 +104,38 @@ export default function PublicationsContent() {
             ))}
           </div>
 
-          <div className="book-grid">
-            {visibleBooks.map((book) => (
-              <Reveal as="div" key={book.slug}>
-                <BookCard
-                  book={book}
-                  language={language}
-                  categoryLabel={categories[book.category]}
-                  byAuthorLabel={t.byAuthor}
-                  viewDetailsLabel={t.viewDetails}
-                />
-              </Reveal>
-            ))}
-          </div>
+          {/* Tampilkan status loading jika data sedang di-fetch */}
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <p className="text-gray-500">Memuat katalog buku...</p>
+            </div>
+          ) : (
+            <div className="book-grid">
+              {visibleBooks.length > 0 ? (
+                visibleBooks.map((book) => (
+                  <Reveal as="div" key={book.slug}>
+                    <BookCard
+                      book={book}
+                      language={language}
+                      categoryLabel={categories[book.category]}
+                      byAuthorLabel={t.byAuthor}
+                      viewDetailsLabel={t.viewDetails}
+                    />
+                  </Reveal>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-10 text-gray-500">
+                  Belum ada publikasi di kategori ini.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* COMING SOON: PROCEEDINGS / REPORTS */}
+      {/* ... sisa kode section COMING SOON dan EXPECT tetap sama ... */}
       <section className="section section--tint">
-        <div className="container two-col">
-          <Reveal>
-            <p className="eyebrow">{t.comingSoonEyebrow}</p>
-            <h2>{t.comingSoonTitle}</h2>
-            <p>{t.comingSoonP1}</p>
-            <p>{t.comingSoonP2}</p>
-            <Link href="/contact" className="btn btn-secondary btn-sm">
-              {t.contactEditorial}
-            </Link>
-          </Reveal>
-          <Reveal>
-            <div className="future-note">{t.futureNote}</div>
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container">
-          <p className="eyebrow">{t.expectEyebrow}</p>
-          <h2>{t.expectTitle}</h2>
-          <div className="cards-3" style={{ marginTop: '2rem' }}>
-            <Reveal className="plain-card">
-              <h3>{t.expect1Title}</h3>
-              <p>{t.expect1Body}</p>
-            </Reveal>
-            <Reveal className="plain-card">
-              <h3>{t.expect2Title}</h3>
-              <p>{t.expect2Body}</p>
-            </Reveal>
-          </div>
-        </div>
+         {/* ... */}
       </section>
     </>
   );

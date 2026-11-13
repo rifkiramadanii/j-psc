@@ -31,7 +31,7 @@ export async function POST(request) {
   }
 
   const apiKey = process.env.RESEND_API_KEY;
-  const toEmail = process.env.CONTACT_TO_EMAIL || 'editorial@jpsc-publisher.org';
+  const toEmail = process.env.CONTACT_TO_EMAIL || 'info@j-psc.com';
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'J-PSC Website <onboarding@resend.dev>';
 
   if (!apiKey) {
