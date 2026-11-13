@@ -10,31 +10,18 @@ export default function BookDetailContent({ book }) {
   const t = getDictionary(language).bookDetail;
   const categories = getDictionary(language).categories;
 
-  if (!book) {
-    return (
-      <div className="section">
-        <div className="container" style={{ textAlign: 'center' }}>
-          <h1>{t.notFoundTitle}</h1>
-          <p className="lede" style={{ margin: '0 auto 1.5rem' }}>
-            {t.notFoundBody}
-          </p>
-          <Link href="/publications" className="btn btn-secondary">
-            {t.backToCatalog}
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Menyesuaikan pemanggilan data dengan kolom database MySQL
+  const title = language === 'en' ? book.title_en : book.title_id;
+  const description = language === 'en' ? book.desc_en : book.desc_id;
 
   const whatsappHref = `https://wa.me/${siteConfig.whatsappNumber}?text=${encodeURIComponent(
     language === 'id'
-      ? `Halo J-PSC, saya ingin bertanya tentang buku "${book.title.id}".`
-      : `Hello J-PSC, I'd like to ask about the book "${book.title.en}".`
+      ? `Halo J-PSC, saya ingin bertanya tentang buku "${title}".`
+      : `Hello J-PSC, I'd like to ask about the book "${title}".`
   )}`;
 
   const emailHref = `mailto:${siteConfig.contactEmail}?subject=${encodeURIComponent(
-    (language === 'id' ? 'Pertanyaan tentang buku: ' : 'Question about the book: ') +
-      book.title[language]
+    (language === 'id' ? 'Pertanyaan tentang buku: ' : 'Question about the book: ') + title
   )}`;
 
   return (
@@ -49,15 +36,42 @@ export default function BookDetailContent({ book }) {
 
       <section className="section">
         <div className="container book-detail-grid">
-          <div className="book-detail-cover" style={{ background: book.coverColor }}>
-            <span className="book-cover-category">{categories[book.category]}</span>
-            <span className="book-detail-cover-title">{book.title[language]}</span>
+          
+          {/* BAGIAN COVER */}
+          <div 
+            className="book-detail-cover" 
+            style={{ 
+              background: book.cover_color || '#e5e7eb',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            {book.cover_image_url ? (
+              <img 
+                src={book.cover_image_url} 
+                alt={title}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0
+                }}
+              />
+            ) : (
+              <>
+                <span className="book-cover-category">{categories[book.category]}</span>
+                <span className="book-detail-cover-title">{title}</span>
+              </>
+            )}
           </div>
 
+          {/* BAGIAN INFO BUKU */}
           <div>
-            <h1>{book.title[language]}</h1>
-            <p className="lede" style={{ marginBottom: '1.6rem' }}>
-              {book.description[language]}
+            <h1>{title}</h1>
+            <p className="lede" style={{ marginBottom: '1.6rem', whiteSpace: 'pre-wrap' }}>
+              {description}
             </p>
 
             <div className="journal-facts" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
@@ -67,7 +81,7 @@ export default function BookDetailContent({ book }) {
               </div>
               <div>
                 <div className="journal-fact-label">{t.yearLabel}</div>
-                <div className="journal-fact-value">{book.year}</div>
+                <div className="journal-fact-value">{book.publish_year}</div> {/* Disesuaikan DB */}
               </div>
               <div>
                 <div className="journal-fact-label">{t.categoryLabel}</div>
@@ -75,7 +89,7 @@ export default function BookDetailContent({ book }) {
               </div>
               <div>
                 <div className="journal-fact-label">{t.isbnLabel}</div>
-                <div className="journal-fact-value">{book.isbn}</div>
+                <div className="journal-fact-value">{book.isbn || '-'}</div>
               </div>
             </div>
 
